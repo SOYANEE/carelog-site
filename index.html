@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>간병일지</title>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+  :root{
+    --dark:#1F4B4A;
+    --dark-2:#163837;
+    --accent:#C9922E;
+    --accent-soft:#F1E2C4;
+    --bg:#F3F4EF;
+    --card:#FFFFFF;
+    --text:#1B2422;
+    --text-soft:#5B6663;
+    --line:#E1E4DC;
+    --danger:#C1503D;
+    --success:#3E8B62;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  /* ===== 헤더 ===== */
+  .topbar{
+    background:var(--dark);
+    color:#fff;
+    padding:20px 20px 24px;
+    border-radius:0 0 24px 24px;
+  }
+  .topbar .brand{
+    font-size:13px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    opacity:.75;
+    margin:0 0 4px;
+  }
+  .topbar h1{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+  }
+  .topbar .sub{
+    margin:6px 0 0;
+    font-size:13.5px;
+    opacity:.85;
+  }
+  .topbar-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+  }
+  .logout-btn{
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+
+  /* ===== 공통 ===== */
+  .content{
+    flex:1;
+    padding:20px 20px 90px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:0 1px 3px rgba(20,30,25,.06);
+    border:1px solid var(--line);
+  }
+  h2.section-title{
+    font-size:16px;
+    font-weight:800;
+    margin:0 0 14px;
+    color:var(--dark-2);
+  }
+  h3.sub-title{
+    font-size:13.5px;
+    font-weight:800;
+    color:var(--dark);
+    margin:24px 0 4px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  h3.sub-title:first-of-type{margin-top:16px;padding-top:0;border-top:none;}
+  .auto-tag{
+    font-size:11px;font-weight:700;color:var(--dark);
+    background:var(--accent-soft);padding:2px 8px;border-radius:999px;
+  }
+  .two-col{display:flex;gap:10px;}
+  .two-col > div{flex:1;}
+  .readonly-box{
+    background:#F4F6F2;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-top:10px;
+  }
+  .readonly-box div{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:5px 0;font-size:13.5px;
+  }
+  .readonly-box span{color:var(--text-soft);}
+  .readonly-box strong{color:var(--text);font-weight:700;}
+  .hint-text{font-size:12px;color:var(--text-soft);margin:2px 0 10px;}
+  .hourly-block{
+    background:#FBFBF9;border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;
+  }
+  .hourly-block .hb-time{font-size:12.5px;font-weight:700;color:var(--dark);margin-bottom:6px;display:block;}
+  .hourly-block input{padding:9px 10px;font-size:14px;}
+  .hourly-empty{font-size:12.5px;color:var(--text-soft);padding:10px 2px;}
+  .hb-list{
+    margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);
+  }
+  .hb-row{display:flex;gap:8px;font-size:13px;padding:3px 0;}
+  .hb-row-time{flex-shrink:0;font-weight:700;color:var(--dark);min-width:98px;}
+  .hb-row-content{color:var(--text);}
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-soft);
+    margin:14px 0 6px;
+  }
+  label:first-of-type{margin-top:0;}
+  input, textarea, select{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:15px;
+    font-family:inherit;
+    background:#FBFBF9;
+    color:var(--text);
+  }
+  input:focus, textarea:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+    border-color:var(--accent);
+  }
+  textarea{resize:vertical;min-height:90px;line-height:1.5;}
+
+  .btn{
+    width:100%;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    font-size:15.5px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    margin-top:20px;
+  }
+  .btn-primary{background:var(--dark);color:#fff;}
+  .btn-primary:hover{background:var(--dark-2);}
+  .btn-primary:disabled{background:#9CA8A5;cursor:default;}
+  .btn-link{
+    background:none;border:none;color:var(--dark);
+    font-size:13.5px;font-weight:600;text-decoration:underline;
+    cursor:pointer;font-family:inherit;padding:0;margin-top:16px;display:block;text-align:center;width:100%;
+  }
+  .msg{
+    font-size:13.5px;
+    padding:10px 12px;
+    border-radius:10px;
+    margin-top:14px;
+    display:none;
+  }
+  .msg.show{display:block;}
+  .msg.error{background:#FBEAE6;color:var(--danger);}
+  .msg.success{background:#E7F4EC;color:var(--success);}
+
+  /* ===== 로그인/등록 화면 ===== */
+  .auth-wrap{
+    padding-top:8vh;
+    text-align:center;
+  }
+  .auth-mark{
+    width:56px;height:56px;border-radius:16px;
+    background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 18px;
+    font-size:24px;
+  }
+  .auth-title{font-size:20px;font-weight:800;margin:0 0 6px;}
+  .auth-sub{font-size:13.5px;color:var(--text-soft);margin:0 0 28px;}
+
+  /* ===== 탭 ===== */
+  .tabbar{
+    position:fixed;
+    bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:480px;
+    background:#fff;
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  }
+  .tab-btn{
+    flex:1;background:none;border:none;font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:8px 4px;color:var(--text-soft);font-size:12px;font-weight:600;
+    cursor:pointer;border-radius:10px;
+  }
+  .tab-btn.active{color:var(--dark);background:var(--accent-soft);}
+  .tab-icon{font-size:19px;line-height:1;}
+
+  /* ===== 일지 목록 ===== */
+  .patient-group{margin-bottom:16px;}
+  .patient-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 4px;cursor:pointer;
+  }
+  .patient-name{font-size:15px;font-weight:800;color:var(--dark-2);}
+  .patient-count{
+    font-size:12px;font-weight:700;color:var(--dark);
+    background:var(--accent-soft);padding:3px 9px;border-radius:999px;
+  }
+  .log-item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--accent);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .log-item .log-date{font-size:12.5px;font-weight:700;color:var(--dark);}
+  .log-item .log-hours{font-size:12px;color:var(--text-soft);margin-left:6px;}
+  .log-item-head{display:flex;align-items:center;flex-wrap:wrap;gap:2px;}
+  .log-type-badge{
+    font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:auto;
+  }
+  .badge-general{background:#EEF2EC;color:var(--text-soft);}
+  .badge-samsung{background:var(--accent-soft);color:var(--dark);}
+  .print-btn{
+    margin-left:auto;background:var(--dark);color:#fff;border:none;
+    font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:999px;
+    cursor:pointer;font-family:inherit;
+  }
+  .log-hospital{font-size:12.5px;color:var(--text-soft);margin:6px 0 0;}
+  .log-item .log-content{font-size:14px;margin:8px 0 0;line-height:1.55;white-space:pre-wrap;}
+  .log-item .log-note{font-size:12.5px;color:var(--text-soft);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);white-space:pre-wrap;}
+  .empty-state{
+    text-align:center;color:var(--text-soft);font-size:13.5px;
+    padding:60px 20px;
+  }
+  .hidden{display:none !important;}
+
+  /* ===== 인쇄 전용 (평소 화면에서는 보이지 않음) ===== */
+  #print-area{display:none;}
+  @media print{
+    body.printing #app, body.printing .tabbar{display:none !important;}
+    body.printing #print-area{
+      display:block;
+      width:100%;
+      color:#000;
+      font-family:'Pretendard', sans-serif;
+    }
+  }
+  @page{size:A4;margin:14mm;}
+
+  .print-title{text-align:center;font-size:20px;font-weight:800;margin:0 0 22px;}
+  .print-section-title{font-size:14.5px;font-weight:800;margin:20px 0 8px;}
+  .print-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .print-table th, .print-table td{
+    border:1px solid #000;padding:7px 8px;text-align:center;
+  }
+  .print-table td.left-align{text-align:left;}
+  .print-footer{margin-top:34px;font-size:13px;line-height:2;}
+  .print-sign-row{display:flex;justify-content:flex-end;gap:10px;align-items:baseline;margin-top:10px;}
+  .print-sign-row .sign-label{font-weight:800;}
+  .print-sign-row .sign-name{border-bottom:1px solid #000;padding:0 18px 2px;}
+  .print-sign-row .sign-mark{font-weight:800;}
+  .print-org-line{text-align:center;font-size:16px;font-weight:800;margin-top:40px;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== 로그인 화면 ===================== -->
+  <div id="view-login" class="content auth-wrap">
+    <div class="auth-mark">🩺</div>
+    <div class="auth-title">간병일지</div>
+    <div class="auth-sub">휴대전화번호로 로그인해주세요</div>
+    <div class="card" style="text-align:left;">
+      <label for="login-phone">휴대전화번호</label>
+      <input id="login-phone" inputmode="numeric" placeholder="01012345678">
+      <label for="login-password">비밀번호</label>
+      <input id="login-password" type="password" placeholder="비밀번호">
+      <button class="btn btn-primary" id="btn-login">로그인</button>
+      <div class="msg" id="login-msg"></div>
+      <button class="btn-link" id="go-register">아직 계정이 없으신가요? 등록하기</button>
+    </div>
+  </div>
+
+  <!-- ===================== 등록 화면 ===================== -->
+  <div id="view-register" class="content auth-wrap hidden">
+    <div class="auth-mark">✍️</div>
+    <div class="auth-title">간병인 등록</div>
+    <div class="auth-sub">처음 이용하신다면 먼저 등록해주세요</div>
+    <!-- ▶▶ 가입 항목을 추가/삭제하려면 이 폼 + 아래 btn-register 핸들러 + Code.gs의
+         registerCaregiver()를 함께 고쳐야 합니다. -->
+    <div class="card" style="text-align:left;">
+      <label for="reg-name">간병인 성명</label>
+      <input id="reg-name" placeholder="홍길동">
+      <label for="reg-phone">전화번호 (로그인 ID)</label>
+      <input id="reg-phone" inputmode="numeric" placeholder="01012345678">
+      <label for="reg-password">비밀번호 (4자 이상)</label>
+      <input id="reg-password" type="password" placeholder="비밀번호">
+      <label for="reg-birth">생년월일</label>
+      <input id="reg-birth" type="date">
+      <label for="reg-gender">성별</label>
+      <select id="reg-gender">
+        <option value="">선택해주세요</option>
+        <option value="여">여</option>
+        <option value="남">남</option>
+      </select>
+
+      <button class="btn btn-primary" id="btn-register">등록하기</button>
+      <div class="msg" id="register-msg"></div>
+      <button class="btn-link" id="go-login">이미 계정이 있으신가요? 로그인</button>
+    </div>
+  </div>
+
+  <!-- ===================== 대시보드 ===================== -->
+  <div id="view-dashboard" class="hidden">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div>
+          <p class="brand">간병일지</p>
+          <h1 id="welcome-name">-</h1>
+          <p class="sub">오늘도 수고 많으셨습니다</p>
+        </div>
+        <button class="logout-btn" id="btn-logout">로그아웃</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 일지 작성 탭 -->
+      <div id="tab-write">
+        <div class="card">
+          <h2 class="section-title">간병일지 작성</h2>
+
+          <!-- 1. 환자 인적사항 및 간병장소 -->
+          <h3 class="sub-title">환자 인적사항 및 간병장소</h3>
+          <label for="log-patient-name">환자 성명</label>
+          <input id="log-patient-name" placeholder="예: 김이순">
+          <label for="log-patient-birth">환자 생년월일</label>
+          <input id="log-patient-birth" type="date">
+          <label for="log-patient-phone">환자 전화번호</label>
+          <input id="log-patient-phone" inputmode="numeric" placeholder="01012345678">
+          <label for="log-hospital">병원명 (소재지)</label>
+          <input id="log-hospital" placeholder="예: OO병원 (서울시 OO구)">
+          <div class="two-col">
+            <div>
+              <label for="log-admit-start">입원 시작일</label>
+              <input id="log-admit-start" type="date">
+            </div>
+            <div>
+              <label for="log-admit-end">입원 종료일</label>
+              <input id="log-admit-end" type="date">
+            </div>
+          </div>
+
+          <!-- 2. 간병인 인적사항 (가입 정보 자동 기입, 읽기 전용) -->
+          <h3 class="sub-title">간병인 인적사항 <span class="auto-tag">가입정보 자동 기입</span></h3>
+          <div class="readonly-box">
+            <div><span>성명</span><strong id="cg-name-view">-</strong></div>
+            <div><span>생년월일</span><strong id="cg-birth-view">-</strong></div>
+            <div><span>전화번호</span><strong id="cg-phone-view">-</strong></div>
+          </div>
+
+          <!-- 3. 간병인 세부 사용내역 -->
+          <h3 class="sub-title">간병인 세부 사용내역</h3>
+          <label for="log-date">입원일 (해당 일지 날짜)</label>
+          <input id="log-date" type="date">
+          <div class="two-col">
+            <div>
+              <label for="log-start-time">간병 시작시간</label>
+              <input id="log-start-time" type="time">
+            </div>
+            <div>
+              <label for="log-end-time">간병 종료시간</label>
+              <input id="log-end-time" type="time">
+            </div>
+          </div>
+
+          <label style="margin-top:16px;">시간대별 주요 간병 내용</label>
+          <p class="hint-text">시작/종료시간을 입력하면 1시간 단위로 입력칸이 자동으로 생깁니다</p>
+          <div id="hourly-blocks-wrap"></div>
+
+          <label for="log-note">특이사항 (선택)</label>
+          <textarea id="log-note" placeholder="특별히 전달할 사항이 있으면 적어주세요" style="min-height:60px;"></textarea>
+          <button class="btn btn-primary" id="btn-save-log">일지 저장</button>
+          <div class="msg" id="log-msg"></div>
+        </div>
+      </div>
+
+      <!-- 일지 목록 탭 -->
+      <div id="tab-list" class="hidden">
+        <h2 class="section-title">내가 작성한 일지</h2>
+        <div id="log-list-wrap"></div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <button class="tab-btn active" data-tab="write">
+        <span class="tab-icon">📝</span>일지 작성
+      </button>
+      <button class="tab-btn" data-tab="list">
+        <span class="tab-icon">📋</span>내 일지 보기
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== 인쇄 전용 영역 (평소에는 화면에 보이지 않음) ===================== -->
+<div id="print-area"></div>
+
+<script>
+/* =========================================================
+   설정: Apps Script 배포 후 발급받은 웹앱 URL을 아래에 붙여넣으세요.
+   예) https://script.google.com/macros/s/AKfycb.../exec
+========================================================= */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBRBb1xpupniZxYvX9vAXQ19_SUsEeUoctl5hDC16gTChNCPBZ9hNVoG-nza-9nabN/exec';
+
+// ▶▶ 인쇄 문서 하단에 들어가는 소속/제출처 문구입니다. 필요하면 이 값만 바꾸세요.
+const PRINT_ORG_LINE = '하모니간병인협회 대표 귀하';
+
+// ===== 공통 API 호출 (CORS 프리플라이트 방지를 위해 text/plain 사용) =====
+async function callApi(action, payload) {
+  const body = Object.assign({ action: action }, payload || {});
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ===== 화면 전환 =====
+function show(id) {
+  ['view-login','view-register','view-dashboard'].forEach(v => {
+    document.getElementById(v).classList.toggle('hidden', v !== id);
+  });
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg show ' + type;
+}
+
+document.getElementById('go-register').onclick = () => show('view-register');
+document.getElementById('go-login').onclick = () => show('view-login');
+
+// ===== 로그인 =====
+document.getElementById('btn-login').onclick = async () => {
+  const phone = document.getElementById('login-phone').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!phone || !password) {
+    showMsg('login-msg', '전화번호와 비밀번호를 입력해주세요.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = '로그인 중...';
+  try {
+    const result = await callApi('login', { phone, password });
+    if (result.success) {
+      localStorage.setItem('cl_token', result.token);
+      localStorage.setItem('cl_name', result.name);
+      localStorage.setItem('cl_birth', result.birthDate || '');
+      localStorage.setItem('cl_phone', result.phone || phone);
+      enterDashboard(result.name);
+    } else {
+      showMsg('login-msg', result.message, 'error');
+    }
+  } catch (e) {
+    showMsg('login-msg', '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '로그인';
+  }
+};
+
+// ===== 등록 =====
+// ▶▶ 가입 항목을 추가/삭제하려면 이 핸들러 + 위 등록 폼(#view-register) +
+//    Code.gs의 registerCaregiver()를 함께 고쳐야 합니다.
+document.getElementById('btn-register').onclick = async () => {
+  const name = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const birthDate = document.getElementById('reg-birth').value;
+  const gender = document.getElementById('reg-gender').value;
+
+  if (!name || !phone || !password || !birthDate || !gender) {
+    showMsg('register-msg', '모든 항목을 입력해주세요.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = '등록 중...';
+  try {
+    const result = await callApi('register', { name, phone, password, birthDate, gender });
+    if (result.success) {
+      showMsg('register-msg', result.message, 'success');
+      setTimeout(() => {
+        show('view-login');
+        document.getElementById('login-phone').value = phone;
+      }, 900);
+    } else {
+      showMsg('register-msg', result.message, 'error');
+    }
+  } catch (e) {
+    showMsg('register-msg', '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '등록하기';
+  }
+};
+
+// ===== 로그아웃 =====
+document.getElementById('btn-logout').onclick = () => {
+  localStorage.removeItem('cl_token');
+  localStorage.removeItem('cl_name');
+  localStorage.removeItem('cl_birth');
+  localStorage.removeItem('cl_phone');
+  show('view-login');
+};
+
+// ===== 대시보드 진입 =====
+function enterDashboard(name) {
+  document.getElementById('welcome-name').textContent = name + '님';
+  show('view-dashboard');
+  document.getElementById('log-date').valueAsDate = new Date();
+
+  // 간병인 인적사항 자동 기입 (가입 시 정보를 화면에 표시만 함, 재입력 없음)
+  document.getElementById('cg-name-view').textContent = localStorage.getItem('cl_name') || '-';
+  document.getElementById('cg-birth-view').textContent = localStorage.getItem('cl_birth') || '-';
+  document.getElementById('cg-phone-view').textContent = localStorage.getItem('cl_phone') || '-';
+  renderHourlyBlocks();
+
+  loadLogs();
+}
+
+// ===== 탭 전환 =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('tab-write').classList.toggle('hidden', tab !== 'write');
+    document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
+    if (tab === 'list') loadLogs();
+  };
+});
+
+// (일지 유형 구분을 없애고 통합 양식으로 변경했으므로 종류 토글 로직은 더 이상 없습니다)
+
+// ===== 시간대별 세부내용 입력칸 (시작~종료시간을 1시간 단위로 분할) =====
+function minutesToLabel(m) {
+  m = ((m % 1440) + 1440) % 1440;
+  const h = String(Math.floor(m / 60)).padStart(2, '0');
+  const mm = String(m % 60).padStart(2, '0');
+  return h + ':' + mm;
+}
+
+function buildHourSlots(start, end) {
+  if (!start || !end) return [];
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let startMin = sh * 60 + sm;
+  let endMin = eh * 60 + em;
+  if (endMin <= startMin) endMin += 24 * 60; // 자정을 넘기는 근무 대비
+  const slots = [];
+  let cur = startMin;
+  while (cur < endMin) {
+    const next = Math.min(cur + 60, endMin);
+    slots.push(minutesToLabel(cur) + ' ~ ' + minutesToLabel(next));
+    cur = next;
+  }
+  return slots;
+}
+
+function renderHourlyBlocks() {
+  const start = document.getElementById('log-start-time').value;
+  const end = document.getElementById('log-end-time').value;
+  const wrap = document.getElementById('hourly-blocks-wrap');
+  const slots = buildHourSlots(start, end);
+
+  // 기존에 입력해둔 내용은 시간대 라벨이 같으면 그대로 유지
+  const prevValues = {};
+  wrap.querySelectorAll('.hourly-block').forEach(el => {
+    prevValues[el.dataset.time] = el.querySelector('input').value;
+  });
+
+  if (!slots.length) {
+    wrap.innerHTML = '<div class="hourly-empty">간병 시작시간과 종료시간을 먼저 입력해주세요.</div>';
+    return;
+  }
+
+  wrap.innerHTML = slots.map((label, idx) =>
+    '<div class="hourly-block" data-time="' + label + '">' +
+      '<span class="hb-time">' + label + '</span>' +
+      '<input type="text" class="hb-input" data-idx="' + idx + '" placeholder="예: 투약 및 활력징후 체크" value="' +
+      escapeHtml(prevValues[label] || '') + '">' +
+    '</div>'
+  ).join('');
+}
+
+document.getElementById('log-start-time').addEventListener('change', renderHourlyBlocks);
+document.getElementById('log-end-time').addEventListener('change', renderHourlyBlocks);
+
+function collectHourlyBlocks() {
+  const wrap = document.getElementById('hourly-blocks-wrap');
+  const blocks = [];
+  wrap.querySelectorAll('.hourly-block').forEach(el => {
+    blocks.push({ time: el.dataset.time, content: el.querySelector('input').value.trim() });
+  });
+  return blocks;
+}
+
+// ===== 일지 저장 =====
+document.getElementById('btn-save-log').onclick = async () => {
+  const patientName = document.getElementById('log-patient-name').value.trim();
+  const patientBirth = document.getElementById('log-patient-birth').value;
+  const patientPhone = document.getElementById('log-patient-phone').value.trim();
+  const hospital = document.getElementById('log-hospital').value.trim();
+  const admitStart = document.getElementById('log-admit-start').value;
+  const admitEnd = document.getElementById('log-admit-end').value;
+  const logDate = document.getElementById('log-date').value;
+  const startTime = document.getElementById('log-start-time').value;
+  const endTime = document.getElementById('log-end-time').value;
+  const note = document.getElementById('log-note').value.trim();
+
+  if (!patientName || !patientBirth || !patientPhone || !hospital || !admitStart || !admitEnd) {
+    showMsg('log-msg', '환자 인적사항 및 간병장소 항목을 모두 입력해주세요.', 'error');
+    return;
+  }
+  if (!logDate || !startTime || !endTime) {
+    showMsg('log-msg', '입원일, 간병 시작시간, 종료시간을 모두 입력해주세요.', 'error');
+    return;
+  }
+
+  const hourlyContent = collectHourlyBlocks();
+  if (!hourlyContent.length) {
+    showMsg('log-msg', '시작/종료시간을 입력하면 시간대별 입력칸이 생성됩니다.', 'error');
+    return;
+  }
+  if (hourlyContent.some(b => !b.content)) {
+    showMsg('log-msg', '모든 시간대의 주요 간병 내용을 입력해주세요.', 'error');
+    return;
+  }
+
+  const payload = {
+    token: localStorage.getItem('cl_token'),
+    patientName, patientBirth, patientPhone, hospital, admitStart, admitEnd,
+    logDate, startTime, endTime, hourlyContent, note,
+    // 간병인 인적사항: 로그인 시 저장해둔 본인 정보를 그대로 전달 (자동 기입)
+    caregiverName: localStorage.getItem('cl_name') || '',
+    caregiverBirth: localStorage.getItem('cl_birth') || '',
+    caregiverPhone: localStorage.getItem('cl_phone') || ''
+  };
+
+  const btn = document.getElementById('btn-save-log');
+  btn.disabled = true; btn.textContent = '저장 중...';
+  try {
+    const result = await callApi('addLog', payload);
+    if (result.success) {
+      showMsg('log-msg', result.message, 'success');
+      ['log-patient-name','log-patient-birth','log-patient-phone','log-hospital',
+       'log-admit-start','log-admit-end','log-start-time','log-end-time','log-note']
+        .forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('log-date').valueAsDate = new Date();
+      renderHourlyBlocks();
+    } else {
+      showMsg('log-msg', result.message, 'error');
+      if (result.message.indexOf('로그인') !== -1) show('view-login');
+    }
+  } catch (e) {
+    showMsg('log-msg', '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '일지 저장';
+  }
+};
+
+// ===== 일지 목록 불러오기 (환자별 그룹) =====
+let currentLogs = []; // 인쇄 시 id로 다시 찾기 위해 최근 조회 결과를 보관
+
+async function loadLogs() {
+  const wrap = document.getElementById('log-list-wrap');
+  wrap.innerHTML = '<div class="empty-state">불러오는 중...</div>';
+  const token = localStorage.getItem('cl_token');
+  try {
+    const result = await callApi('getLogs', { token });
+    if (!result.success) {
+      wrap.innerHTML = '<div class="empty-state">' + result.message + '</div>';
+      if (result.message.indexOf('로그인') !== -1) show('view-login');
+      return;
+    }
+    if (!result.logs.length) {
+      wrap.innerHTML = '<div class="empty-state">아직 작성한 일지가 없습니다.</div>';
+      return;
+    }
+    currentLogs = result.logs;
+    const groups = {};
+    result.logs.forEach(log => {
+      if (!groups[log.patientName]) groups[log.patientName] = [];
+      groups[log.patientName].push(log);
+    });
+    wrap.innerHTML = '';
+    Object.keys(groups).forEach(patientName => {
+      const logs = groups[patientName];
+      const groupEl = document.createElement('div');
+      groupEl.className = 'patient-group';
+      groupEl.innerHTML =
+        '<div class="patient-head"><span class="patient-name">' + escapeHtml(patientName) + '</span>' +
+        '<span class="patient-count">' + logs.length + '건</span></div>' +
+        logs.map(log => {
+          const hourlyHtml = (log.hourlyBlocks || []).map(b =>
+            '<div class="hb-row"><span class="hb-row-time">' + escapeHtml(b.time) + '</span>' +
+            '<span class="hb-row-content">' + escapeHtml(b.content) + '</span></div>'
+          ).join('');
+          return (
+            '<div class="log-item">' +
+              '<div class="log-item-head">' +
+                '<span class="log-date">' + escapeHtml(log.date) + '</span>' +
+                '<span class="log-hours">' + escapeHtml(log.startTime) + ' ~ ' + escapeHtml(log.endTime) + '</span>' +
+                '<button class="print-btn" data-log-id="' + escapeHtml(log.id) + '">인쇄</button>' +
+              '</div>' +
+              '<p class="log-hospital">' + escapeHtml(log.hospital) +
+                ' · 입원기간 ' + escapeHtml(log.admitStart) + ' ~ ' + escapeHtml(log.admitEnd) + '</p>' +
+              '<p class="log-content"><strong>환자</strong> · ' + escapeHtml(log.patientName) +
+                ' (' + escapeHtml(log.patientBirth) + ') · ' + escapeHtml(log.patientPhone) + '</p>' +
+              '<p class="log-content"><strong>간병인</strong> · ' + escapeHtml(log.caregiverName) +
+                ' (' + escapeHtml(log.caregiverBirth) + ') · ' + escapeHtml(log.caregiverPhone) + '</p>' +
+              (hourlyHtml ? '<div class="hb-list">' + hourlyHtml + '</div>' : '') +
+              (log.note ? '<p class="log-note">특이사항 · ' + escapeHtml(log.note) + '</p>' : '') +
+            '</div>'
+          );
+        }).join('');
+      wrap.appendChild(groupEl);
+    });
+    wrap.querySelectorAll('.print-btn').forEach(btn => {
+      btn.onclick = () => printLog(btn.dataset.logId);
+    });
+  } catch (e) {
+    wrap.innerHTML = '<div class="empty-state">네트워크 오류가 발생했습니다.</div>';
+  }
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ===== 인쇄 (업로드해주신 "간병인 근무일지" 양식 그대로 재현) =====
+function formatKoreanDate(isoDate) {
+  if (!isoDate) return '';
+  const parts = String(isoDate).split('-');
+  if (parts.length !== 3) return isoDate;
+  return parseInt(parts[1], 10) + '월 ' + parseInt(parts[2], 10) + '일';
+}
+
+function admitDayCount(startIso, endIso) {
+  if (!startIso || !endIso) return '';
+  const s = new Date(startIso + 'T00:00:00');
+  const e = new Date(endIso + 'T00:00:00');
+  const diff = Math.round((e - s) / 86400000) + 1;
+  return diff > 0 ? diff + '일' : '';
+}
+
+// ▶▶ 인쇄 양식 자체(문구/배치)를 바꾸려면 이 함수를 수정하세요.
+//    상단의 PRINT_ORG_LINE 상수는 "○○ 대표 귀하" 문구 전용입니다.
+function buildPrintHtml(log) {
+  const hourly = log.hourlyBlocks || [];
+  const rowsPerColumn = Math.max(8, Math.ceil(hourly.length / 2));
+  const leftRows = hourly.slice(0, rowsPerColumn);
+  const rightRows = hourly.slice(rowsPerColumn, rowsPerColumn * 2);
+
+  function buildCell(entry) {
+    if (!entry) {
+      return '<td>월  일</td><td></td><td></td><td class="left-align"></td>';
+    }
+    const parts = String(entry.time).split('~').map(s => s.trim());
+    return (
+      '<td>' + escapeHtml(formatKoreanDate(log.date)) + '</td>' +
+      '<td>' + escapeHtml(parts[0] || '') + '</td>' +
+      '<td>' + escapeHtml(parts[1] || '') + '</td>' +
+      '<td class="left-align">' + escapeHtml(entry.content) + '</td>'
+    );
+  }
+
+  let bodyRows = '';
+  for (let i = 0; i < rowsPerColumn; i++) {
+    bodyRows +=
+      '<tr>' + buildCell(leftRows[i]) + buildCell(rightRows[i]) + '</tr>';
+  }
+
+  return (
+    '<div class="print-title">간병인 근무일지</div>' +
+
+    '<div class="print-section-title">1. 환자 인적사항 및 간병장소</div>' +
+    '<table class="print-table">' +
+      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(log.patientName) + '</td>' +
+          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(log.patientBirth) + '</td>' +
+          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(log.patientPhone) + '</td></tr>' +
+      '<tr><th>병원명<br>(소재지)</th><td>' + escapeHtml(log.hospital) + '</td>' +
+          '<th>입원기간</th><td colspan="3">' + escapeHtml(log.admitStart) + ' ~ ' + escapeHtml(log.admitEnd) +
+          ' (' + admitDayCount(log.admitStart, log.admitEnd) + ')</td></tr>' +
+    '</table>' +
+
+    '<div class="print-section-title">2. 간병인 인적사항</div>' +
+    '<table class="print-table">' +
+      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(log.caregiverName) + '</td>' +
+          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(log.caregiverBirth) + '</td>' +
+          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(log.caregiverPhone) + '</td></tr>' +
+    '</table>' +
+
+    '<div class="print-section-title">3. 간병인 세부 사용내역</div>' +
+    '<table class="print-table">' +
+      '<tr>' +
+        '<th rowspan="2" style="width:12%;">입원일</th>' +
+        '<th colspan="2">간병인사용시간</th>' +
+        '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
+        '<th rowspan="2" style="width:12%;">입원일</th>' +
+        '<th colspan="2">간병인사용시간</th>' +
+        '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
+      '</tr>' +
+      '<tr><th>시작시간</th><th>종료시간</th><th>시작시간</th><th>종료시간</th></tr>' +
+      bodyRows +
+    '</table>' +
+
+    '<div class="print-footer">' +
+      '<p style="text-align:center;">상기와 같이 간병하였음을 확인합니다.</p>' +
+      '<div class="print-sign-row">' +
+        '<span class="sign-label">간병인 명</span>' +
+        '<span class="sign-name">' + escapeHtml(log.caregiverName) + '</span>' +
+        '<span class="sign-mark">서명</span>' +
+      '</div>' +
+      '<div class="print-org-line">' + escapeHtml(PRINT_ORG_LINE) + '</div>' +
+    '</div>'
+  );
+}
+
+function printLog(logId) {
+  const log = currentLogs.find(l => l.id === logId);
+  if (!log) return;
+  document.getElementById('print-area').innerHTML = buildPrintHtml(log);
+  document.body.classList.add('printing');
+  window.print();
+}
+
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing');
+});
+
+// ===== 시작 시 로그인 상태 확인 =====
+(function init() {
+  const token = localStorage.getItem('cl_token');
+  const name = localStorage.getItem('cl_name');
+  if (token && name) {
+    enterDashboard(name);
+  } else {
+    show('view-login');
+  }
+})();
+</script>
+</body>
+</html>
