@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <title>하모니간병인협회</title>
 <link rel="stylesheet" as="style" crossorigin
   href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -45,7 +45,7 @@
   .topbar{
     background:var(--dark);
     color:#fff;
-    padding:20px 20px 24px;
+    padding:calc(20px + env(safe-area-inset-top)) 20px 24px;
     border-radius:0 0 24px 24px;
   }
   .topbar .brand{
@@ -115,8 +115,8 @@
     font-size:11px;font-weight:700;color:var(--dark);
     background:var(--accent-soft);padding:2px 8px;border-radius:999px;
   }
-  .two-col{display:flex;gap:10px;}
-  .two-col > div{flex:1;}
+  .two-col{display:flex;flex-wrap:wrap;gap:10px;}
+  .two-col > div{flex:1 1 130px;min-width:0;}
   .readonly-box{
     background:#F4F6F2;border:1px solid var(--line);border-radius:10px;
     padding:12px 14px;margin-top:10px;
@@ -133,7 +133,7 @@
     padding:10px 12px;margin-bottom:8px;
   }
   .hourly-block .hb-time{font-size:12.5px;font-weight:700;color:var(--dark);margin-bottom:6px;display:block;}
-  .hourly-block input{padding:9px 10px;font-size:14px;}
+  .hourly-block input{padding:9px 10px;font-size:16px;}
   .hourly-empty{font-size:12.5px;color:var(--text-soft);padding:10px 2px;}
   .hb-list{
     margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);
@@ -154,10 +154,12 @@
     border:1.5px solid var(--line);
     border-radius:10px;
     padding:12px 14px;
-    font-size:15px;
+    font-size:16px; /* iOS Safari는 입력창 글자가 16px보다 작으면 포커스 시 화면을 자동 확대해 레이아웃이 밀립니다 */
     font-family:inherit;
     background:#FBFBF9;
     color:var(--text);
+    min-height:46px;
+    box-sizing:border-box;
   }
   input:focus, textarea:focus, select:focus, button:focus-visible{
     outline:2px solid var(--accent);
@@ -198,7 +200,7 @@
 
   /* ===== 로그인/등록 화면 ===== */
   .auth-wrap{
-    padding-top:8vh;
+    padding-top:calc(8vh + env(safe-area-inset-top));
     text-align:center;
   }
   .auth-mark{
@@ -237,6 +239,7 @@
     padding:12px 4px;cursor:pointer;
   }
   .patient-name{font-size:15px;font-weight:800;color:var(--dark-2);}
+  .patient-head-right{display:flex;align-items:center;gap:8px;}
   .patient-count{
     font-size:12px;font-weight:700;color:var(--dark);
     background:var(--accent-soft);padding:3px 9px;border-radius:999px;
@@ -258,9 +261,9 @@
   .badge-general{background:#EEF2EC;color:var(--text-soft);}
   .badge-samsung{background:var(--accent-soft);color:var(--dark);}
   .print-btn{
-    margin-left:auto;background:var(--dark);color:#fff;border:none;
+    background:var(--dark);color:#fff;border:none;
     font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:999px;
-    cursor:pointer;font-family:inherit;
+    cursor:pointer;font-family:inherit;flex-shrink:0;
   }
   .log-hospital{font-size:12.5px;color:var(--text-soft);margin:6px 0 0;}
   .log-item .log-content{font-size:14px;margin:8px 0 0;line-height:1.55;white-space:pre-wrap;}
@@ -287,11 +290,14 @@
   .print-title{text-align:center;font-size:20px;font-weight:800;margin:0 0 22px;}
   .print-section-title{font-size:14.5px;font-weight:800;margin:20px 0 8px;}
   .print-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .print-table thead{display:table-header-group;} /* 페이지가 넘어가도 헤더 행 반복 */
+  .print-table tr{page-break-inside:avoid;}
   .print-table th, .print-table td{
     border:1px solid #000;padding:7px 8px;text-align:center;
   }
   .print-table td.left-align{text-align:left;}
   .print-footer{margin-top:34px;font-size:13px;line-height:2;}
+  .print-footer{page-break-inside:avoid;}
   .print-sign-row{display:flex;justify-content:flex-end;gap:10px;align-items:baseline;margin-top:10px;}
   .print-sign-row .sign-label{font-weight:800;}
   .print-sign-row .sign-name{border-bottom:1px solid #000;padding:0 18px 2px;}
@@ -402,11 +408,11 @@
           <div class="two-col">
             <div>
               <label for="log-start-time">간병 시작시간</label>
-              <input id="log-start-time" type="time">
+              <select id="log-start-time"><option value="">선택</option></select>
             </div>
             <div>
               <label for="log-end-time">간병 종료시간</label>
-              <input id="log-end-time" type="time">
+              <select id="log-end-time"><option value="">선택</option></select>
             </div>
           </div>
 
@@ -551,6 +557,14 @@ document.getElementById('btn-logout').onclick = () => {
   show('view-login');
 };
 
+// ISO 'yyyy-MM-dd' 문자열을 화면 표시용 '2026.05.01' 형태로 변환
+function toDotDate(iso) {
+  if (!iso) return '';
+  const parts = String(iso).split('-');
+  if (parts.length !== 3) return iso;
+  return parts[0] + '.' + parts[1] + '.' + parts[2];
+}
+
 // ===== 대시보드 진입 =====
 function enterDashboard(name) {
   document.getElementById('welcome-name').textContent = name + '님';
@@ -559,7 +573,7 @@ function enterDashboard(name) {
 
   // 간병인 인적사항 자동 기입 (가입 시 정보를 화면에 표시만 함, 재입력 없음)
   document.getElementById('cg-name-view').textContent = localStorage.getItem('cl_name') || '-';
-  document.getElementById('cg-birth-view').textContent = localStorage.getItem('cl_birth') || '-';
+  document.getElementById('cg-birth-view').textContent = toDotDate(localStorage.getItem('cl_birth')) || '-';
   document.getElementById('cg-phone-view').textContent = localStorage.getItem('cl_phone') || '-';
   renderHourlyBlocks();
 
@@ -581,26 +595,34 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // (일지 유형 구분을 없애고 통합 양식으로 변경했으므로 종류 토글 로직은 더 이상 없습니다)
 
 // ===== 시간대별 세부내용 입력칸 (시작~종료시간을 1시간 단위로 분할) =====
-function minutesToLabel(m) {
-  m = ((m % 1440) + 1440) % 1440;
-  const h = String(Math.floor(m / 60)).padStart(2, '0');
-  const mm = String(m % 60).padStart(2, '0');
-  return h + ':' + mm;
+// 요청사항: 간병 시작/종료시간은 매 정각만 선택 가능 (예: 09:00, 24:00)
+function hourLabel(h) {
+  // h=24, 48 처럼 24의 배수(0 제외)는 "그 날의 끝"을 뜻하는 24:00으로 표시하고,
+  // 그 외에는 24로 나눈 나머지 시각을 보여줍니다. (예: 25 -> 다음날 01:00)
+  if (h > 0 && h % 24 === 0) return '24:00';
+  return String(h % 24).padStart(2, '0') + ':00';
 }
+
+// 시작/종료시간 select에 00:00~24:00 정각 옵션을 채웁니다.
+function populateHourSelect(selectEl) {
+  let html = '<option value="">선택</option>';
+  for (let h = 0; h <= 24; h++) {
+    const label = hourLabel(h) === '24:00' ? '24:00' : hourLabel(h);
+    html += '<option value="' + label + '">' + label + '</option>';
+  }
+  selectEl.innerHTML = html;
+}
+populateHourSelect(document.getElementById('log-start-time'));
+populateHourSelect(document.getElementById('log-end-time'));
 
 function buildHourSlots(start, end) {
   if (!start || !end) return [];
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  let startMin = sh * 60 + sm;
-  let endMin = eh * 60 + em;
-  if (endMin <= startMin) endMin += 24 * 60; // 자정을 넘기는 근무 대비
+  let startHour = parseInt(start.split(':')[0], 10);
+  let endHour = parseInt(end.split(':')[0], 10);
+  if (endHour <= startHour) endHour += 24; // 자정을 넘기는 근무 대비 (예: 22:00 ~ 06:00)
   const slots = [];
-  let cur = startMin;
-  while (cur < endMin) {
-    const next = Math.min(cur + 60, endMin);
-    slots.push(minutesToLabel(cur) + ' ~ ' + minutesToLabel(next));
-    cur = next;
+  for (let h = startHour; h < endHour; h++) {
+    slots.push(hourLabel(h) + ' ~ ' + hourLabel(h + 1));
   }
   return slots;
 }
@@ -618,7 +640,7 @@ function renderHourlyBlocks() {
   });
 
   if (!slots.length) {
-    wrap.innerHTML = '<div class="hourly-empty">간병 시작시간과 종료시간을 먼저 입력해주세요.</div>';
+    wrap.innerHTML = '<div class="hourly-empty">간병 시작시간과 종료시간을 먼저 선택해주세요.</div>';
     return;
   }
 
@@ -737,8 +759,13 @@ async function loadLogs() {
       const groupEl = document.createElement('div');
       groupEl.className = 'patient-group';
       groupEl.innerHTML =
-        '<div class="patient-head"><span class="patient-name">' + escapeHtml(patientName) + '</span>' +
-        '<span class="patient-count">' + logs.length + '건</span></div>' +
+        '<div class="patient-head">' +
+          '<span class="patient-name">' + escapeHtml(patientName) + '</span>' +
+          '<span class="patient-head-right">' +
+            '<span class="patient-count">' + logs.length + '건</span>' +
+            '<button class="print-btn" data-patient="' + escapeHtml(patientName) + '">전체 인쇄</button>' +
+          '</span>' +
+        '</div>' +
         logs.map(log => {
           const hourlyHtml = (log.hourlyBlocks || []).map(b =>
             '<div class="hb-row"><span class="hb-row-time">' + escapeHtml(b.time) + '</span>' +
@@ -749,14 +776,13 @@ async function loadLogs() {
               '<div class="log-item-head">' +
                 '<span class="log-date">' + escapeHtml(log.date) + '</span>' +
                 '<span class="log-hours">' + escapeHtml(log.startTime) + ' ~ ' + escapeHtml(log.endTime) + '</span>' +
-                '<button class="print-btn" data-log-id="' + escapeHtml(log.id) + '">인쇄</button>' +
               '</div>' +
               '<p class="log-hospital">' + escapeHtml(log.hospital) +
                 ' · 입원기간 ' + escapeHtml(log.admitStart) + ' ~ ' + escapeHtml(log.admitEnd) + '</p>' +
               '<p class="log-content"><strong>환자</strong> · ' + escapeHtml(log.patientName) +
-                ' (' + escapeHtml(log.patientBirth) + ') · ' + escapeHtml(log.patientPhone) + '</p>' +
+                ' (' + escapeHtml(toDotDate(log.patientBirth)) + ') · ' + escapeHtml(log.patientPhone) + '</p>' +
               '<p class="log-content"><strong>간병인</strong> · ' + escapeHtml(log.caregiverName) +
-                ' (' + escapeHtml(log.caregiverBirth) + ') · ' + escapeHtml(log.caregiverPhone) + '</p>' +
+                ' (' + escapeHtml(toDotDate(log.caregiverBirth)) + ') · ' + escapeHtml(log.caregiverPhone) + '</p>' +
               (hourlyHtml ? '<div class="hb-list">' + hourlyHtml + '</div>' : '') +
               (log.note ? '<p class="log-note">특이사항 · ' + escapeHtml(log.note) + '</p>' : '') +
             '</div>'
@@ -765,7 +791,7 @@ async function loadLogs() {
       wrap.appendChild(groupEl);
     });
     wrap.querySelectorAll('.print-btn').forEach(btn => {
-      btn.onclick = () => printLog(btn.dataset.logId);
+      btn.onclick = () => printPatientGroup(btn.dataset.patient);
     });
   } catch (e) {
     wrap.innerHTML = '<div class="empty-state">네트워크 오류가 발생했습니다.</div>';
@@ -796,11 +822,13 @@ function admitDayCount(startIso, endIso) {
 
 // ▶▶ 인쇄 양식 자체(문구/배치)를 바꾸려면 이 함수를 수정하세요.
 //    상단의 PRINT_ORG_LINE 상수는 "○○ 대표 귀하" 문구 전용입니다.
-function buildPrintHtml(log) {
-  const hourly = log.hourlyBlocks || [];
-  const rowsPerColumn = Math.max(8, Math.ceil(hourly.length / 2));
-  const leftRows = hourly.slice(0, rowsPerColumn);
-  const rightRows = hourly.slice(rowsPerColumn, rowsPerColumn * 2);
+// data.entries: 환자의 입원기간 전체에 걸친 모든 일지의 시간대별 항목을 날짜순으로 모은 배열
+//               [{date:'2026-09-01', time:'09:00 ~ 10:00', content:'...'}, ...]
+function buildPrintHtmlForPatient(data) {
+  const entries = data.entries || [];
+  const rowsPerColumn = Math.max(8, Math.ceil(entries.length / 2));
+  const leftRows = entries.slice(0, rowsPerColumn);
+  const rightRows = entries.slice(rowsPerColumn, rowsPerColumn * 2);
 
   function buildCell(entry) {
     if (!entry) {
@@ -808,7 +836,7 @@ function buildPrintHtml(log) {
     }
     const parts = String(entry.time).split('~').map(s => s.trim());
     return (
-      '<td>' + escapeHtml(formatKoreanDate(log.date)) + '</td>' +
+      '<td>' + escapeHtml(formatKoreanDate(entry.date)) + '</td>' +
       '<td>' + escapeHtml(parts[0] || '') + '</td>' +
       '<td>' + escapeHtml(parts[1] || '') + '</td>' +
       '<td class="left-align">' + escapeHtml(entry.content) + '</td>'
@@ -817,8 +845,7 @@ function buildPrintHtml(log) {
 
   let bodyRows = '';
   for (let i = 0; i < rowsPerColumn; i++) {
-    bodyRows +=
-      '<tr>' + buildCell(leftRows[i]) + buildCell(rightRows[i]) + '</tr>';
+    bodyRows += '<tr>' + buildCell(leftRows[i]) + buildCell(rightRows[i]) + '</tr>';
   }
 
   return (
@@ -826,40 +853,42 @@ function buildPrintHtml(log) {
 
     '<div class="print-section-title">1. 환자 인적사항 및 간병장소</div>' +
     '<table class="print-table">' +
-      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(log.patientName) + '</td>' +
-          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(log.patientBirth) + '</td>' +
-          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(log.patientPhone) + '</td></tr>' +
-      '<tr><th>병원명<br>(소재지)</th><td>' + escapeHtml(log.hospital) + '</td>' +
-          '<th>입원기간</th><td colspan="3">' + escapeHtml(log.admitStart) + ' ~ ' + escapeHtml(log.admitEnd) +
-          ' (' + admitDayCount(log.admitStart, log.admitEnd) + ')</td></tr>' +
+      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(data.patientName) + '</td>' +
+          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(toDotDate(data.patientBirth)) + '</td>' +
+          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(data.patientPhone) + '</td></tr>' +
+      '<tr><th>병원명<br>(소재지)</th><td>' + escapeHtml(data.hospital) + '</td>' +
+          '<th>입원기간</th><td colspan="3">' + escapeHtml(toDotDate(data.admitStart)) + ' ~ ' + escapeHtml(toDotDate(data.admitEnd)) +
+          ' (' + admitDayCount(data.admitStart, data.admitEnd) + ')</td></tr>' +
     '</table>' +
 
     '<div class="print-section-title">2. 간병인 인적사항</div>' +
     '<table class="print-table">' +
-      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(log.caregiverName) + '</td>' +
-          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(log.caregiverBirth) + '</td>' +
-          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(log.caregiverPhone) + '</td></tr>' +
+      '<tr><th style="width:14%;">성명</th><td style="width:20%;">' + escapeHtml(data.caregiverName) + '</td>' +
+          '<th style="width:14%;">생년월일</th><td style="width:20%;">' + escapeHtml(toDotDate(data.caregiverBirth)) + '</td>' +
+          '<th style="width:12%;">전화번호</th><td>' + escapeHtml(data.caregiverPhone) + '</td></tr>' +
     '</table>' +
 
     '<div class="print-section-title">3. 간병인 세부 사용내역</div>' +
     '<table class="print-table">' +
-      '<tr>' +
-        '<th rowspan="2" style="width:12%;">입원일</th>' +
-        '<th colspan="2">간병인사용시간</th>' +
-        '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
-        '<th rowspan="2" style="width:12%;">입원일</th>' +
-        '<th colspan="2">간병인사용시간</th>' +
-        '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
-      '</tr>' +
-      '<tr><th>시작시간</th><th>종료시간</th><th>시작시간</th><th>종료시간</th></tr>' +
-      bodyRows +
+      '<thead>' +
+        '<tr>' +
+          '<th rowspan="2" style="width:12%;">입원일</th>' +
+          '<th colspan="2">간병인사용시간</th>' +
+          '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
+          '<th rowspan="2" style="width:12%;">입원일</th>' +
+          '<th colspan="2">간병인사용시간</th>' +
+          '<th rowspan="2" style="width:16%;">주요<br>간병내용</th>' +
+        '</tr>' +
+        '<tr><th>시작시간</th><th>종료시간</th><th>시작시간</th><th>종료시간</th></tr>' +
+      '</thead>' +
+      '<tbody>' + bodyRows + '</tbody>' +
     '</table>' +
 
     '<div class="print-footer">' +
       '<p style="text-align:center;">상기와 같이 간병하였음을 확인합니다.</p>' +
       '<div class="print-sign-row">' +
         '<span class="sign-label">간병인 명</span>' +
-        '<span class="sign-name">' + escapeHtml(log.caregiverName) + '</span>' +
+        '<span class="sign-name">' + escapeHtml(data.caregiverName) + '</span>' +
         '<span class="sign-mark">서명</span>' +
       '</div>' +
       '<div class="print-org-line">' + escapeHtml(PRINT_ORG_LINE) + '</div>' +
@@ -867,10 +896,41 @@ function buildPrintHtml(log) {
   );
 }
 
-function printLog(logId) {
-  const log = currentLogs.find(l => l.id === logId);
-  if (!log) return;
-  document.getElementById('print-area').innerHTML = buildPrintHtml(log);
+// 환자가 퇴원한 뒤, 그 환자의 입원기간 전체 일지를 모아 한 번에 인쇄합니다.
+function printPatientGroup(patientName) {
+  const logs = currentLogs.filter(l => l.patientName === patientName);
+  if (!logs.length) return;
+
+  const sorted = logs.slice().sort((a, b) => (a.date < b.date ? -1 : (a.date > b.date ? 1 : 0)));
+  const entries = [];
+  sorted.forEach(log => {
+    (log.hourlyBlocks || []).forEach(b => {
+      entries.push({ date: log.date, time: b.time, content: b.content });
+    });
+  });
+
+  const first = sorted[0];
+  let admitStart = first.admitStart;
+  let admitEnd = first.admitEnd;
+  sorted.forEach(l => {
+    if (l.admitStart && l.admitStart < admitStart) admitStart = l.admitStart;
+    if (l.admitEnd && l.admitEnd > admitEnd) admitEnd = l.admitEnd;
+  });
+
+  const printData = {
+    patientName: first.patientName,
+    patientBirth: first.patientBirth,
+    patientPhone: first.patientPhone,
+    hospital: first.hospital,
+    admitStart: admitStart,
+    admitEnd: admitEnd,
+    caregiverName: first.caregiverName,
+    caregiverBirth: first.caregiverBirth,
+    caregiverPhone: first.caregiverPhone,
+    entries: entries
+  };
+
+  document.getElementById('print-area').innerHTML = buildPrintHtmlForPatient(printData);
   document.body.classList.add('printing');
   window.print();
 }
