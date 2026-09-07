@@ -22,7 +22,7 @@
     --radius:16px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
   body{
     font-family:'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
     background:var(--bg);
@@ -39,6 +39,8 @@
     display:flex;
     flex-direction:column;
     position:relative;
+    overflow-x:hidden;
+    box-sizing:border-box;
   }
 
   /* ===== 헤더 ===== */
@@ -92,6 +94,8 @@
     padding:20px;
     box-shadow:0 1px 3px rgba(20,30,25,.06);
     border:1px solid var(--line);
+    box-sizing:border-box;
+    max-width:100%;
   }
   h2.section-title{
     font-size:16px;
@@ -151,6 +155,8 @@
   label:first-of-type{margin-top:0;}
   input, textarea, select{
     width:100%;
+    max-width:100%;
+    min-width:0; /* 날짜/시간 입력창이 내부 콘텐츠 때문에 컨테이너 너비를 뚫고 나가는 것 방지 */
     border:1.5px solid var(--line);
     border-radius:10px;
     padding:12px 14px;
@@ -160,6 +166,12 @@
     color:var(--text);
     min-height:46px;
     box-sizing:border-box;
+  }
+  input[type="date"]{
+    /* 일부 브라우저(특히 구형 안드로이드 WebView)는 날짜 입력창의 내부 요소 때문에
+       스스로 필요한 최소 너비를 고집해서 화면 밖으로 튀어나오기도 합니다. */
+    -webkit-appearance:none;
+    appearance:none;
   }
   input:focus, textarea:focus, select:focus, button:focus-visible{
     outline:2px solid var(--accent);
@@ -336,7 +348,7 @@
       <input id="reg-name" placeholder="홍길동">
       <label for="reg-phone">전화번호 (로그인 ID)</label>
       <input id="reg-phone" inputmode="numeric" placeholder="01012345678">
-      <label for="reg-password">비밀번호 (4자 이상)</label>
+      <label for="reg-password">비밀번호 (8자 이상)</label>
       <input id="reg-password" type="password" placeholder="비밀번호">
       <label for="reg-birth">생년월일</label>
       <input id="reg-birth" type="date">
@@ -454,7 +466,7 @@
    설정: Apps Script 배포 후 발급받은 웹앱 URL을 아래에 붙여넣으세요.
    예) https://script.google.com/macros/s/AKfycb.../exec
 ========================================================= */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBRBb1xpupniZxYvX9vAXQ19_SUsEeUoctl5hDC16gTChNCPBZ9hNVoG-nza-9nabN/exec';
+const SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 // ▶▶ 인쇄 문서 하단에 들어가는 소속/제출처 문구입니다. 필요하면 이 값만 바꾸세요.
 const PRINT_ORG_LINE = '하모니간병인협회 대표 귀하';
